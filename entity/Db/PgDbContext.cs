@@ -6,7 +6,7 @@ namespace entity.Db
 	{
 		public DbSet<Article> Articles { get; set; }
 
-		public PgDbContext(DbContextOptions options) : base(options)
+        public PgDbContext(DbContextOptions options) : base(options)
 		{
 		}
 

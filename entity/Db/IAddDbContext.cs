@@ -6,5 +6,6 @@ namespace entity.Db
     {
         DbSet<Article> Articles { get; set; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
+        int SaveChanges();
     }
 }

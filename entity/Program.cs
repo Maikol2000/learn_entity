@@ -1,25 +1,28 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using entity.Db;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//var configBuilder = builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
-//    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-//    .AddJsonFile("appsettings.Development.json", optional: true);
+string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", EnvironmentVariableTarget.Process);
 
-//IConfigurationRoot config = configBuilder.Build();
-builder.Services.AddControllersWithViews();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+var configBuilder = builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{env}.json", optional: true)
+    .AddEnvironmentVariables();
 
+IConfigurationRoot config = configBuilder.Build();
 var services = builder.Services;
+services.AddControllersWithViews();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
 
-services.AddDbContext<MsSqlDbContext>(options => options.UseSqlServer("Server=localhost;Database=TestData;User Id=sa;Password=dev_2020!;TrustServerCertificate=True;Encrypt=false"));
-services.AddDbContext<PgDbContext>(options => options.UseNpgsql("Host=localhost;Database=postgres;Port=5432;Username=postgres;Password=1111"));
 
-var dbProvider = "Ms";
-if (dbProvider == "Ms")
+services.AddDbContext<MsSqlDbContext>(options => options.UseSqlServer(config.GetConnectionString("MsSQL")));
+services.AddDbContext<PgDbContext>(options => options.UseNpgsql(config.GetConnectionString("PgSQL")));
+
+if (config.GetValue<string>("DbProvider") == "Ms")
 {
     services.AddScoped<IAppDbContext>(provider => provider.GetService<MsSqlDbContext>());
 }
@@ -36,6 +39,38 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 };
 
-app.MapGet("/", ([FromServices] IAppDbContext context) => context.Articles.ToList());
+app.MapGet("/articles", (IAppDbContext context) => context.Articles.ToListAsync<Article>());
+
+app.MapGet("/article/{id}", (IAppDbContext context, int id) =>
+{
+    return context.Articles.Where(article => article.Id == id).ToList();
+});
+
+app.MapPost("/articles", (IAppDbContext context, [FromBody] Article article) =>
+{
+    context.Articles.Add(article);
+    context.SaveChanges();
+    return article;
+});
+
+app.MapPut("/article", (IAppDbContext context, [FromBody] Article article) =>
+{
+    var findArticle = context.Articles.Find(article.Id);
+    if (findArticle is null) return null;
+    context.Articles.Remove(findArticle);
+    context.Articles.Update(article);
+    context.SaveChanges();
+    return article;
+});
+
+app.MapDelete("/article/{id}", (IAppDbContext context, int id) => {
+    var findArticle = context.Articles.Find(id);
+
+    if(findArticle is null) return null;
+
+    context.Articles.Remove(findArticle);
+    context.SaveChanges();
+    return findArticle;
+});
 
 app.Run();

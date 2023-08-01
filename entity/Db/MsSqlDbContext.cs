@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+
 namespace entity.Db
 {
 	public class MsSqlDbContext: DbContext, IAppDbContext
 	{
 		public DbSet<Article> Articles { get; set; }
 
-		public MsSqlDbContext(DbContextOptions<MsSqlDbContext> options) : base(options)
+        public MsSqlDbContext(DbContextOptions<MsSqlDbContext> options) : base(options)
 		{
 		}
 
