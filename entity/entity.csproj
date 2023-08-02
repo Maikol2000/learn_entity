@@ -22,7 +22,4 @@
   <ItemGroup>
     <Folder Include="Db\" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Remove="appsettings.Production.json" />
-  </ItemGroup>
 </Project>

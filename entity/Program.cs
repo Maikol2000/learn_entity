@@ -3,20 +3,22 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using entity.Db;
 
+
+string? env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", EnvironmentVariableTarget.Process);
+
 var builder = WebApplication.CreateBuilder(args);
-
-string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", EnvironmentVariableTarget.Process);
-
-var configBuilder = builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{env}.json", optional: true)
-    .AddEnvironmentVariables();
-
-IConfigurationRoot config = configBuilder.Build();
 var services = builder.Services;
+
 services.AddControllersWithViews();
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
+
+IConfiguration config = new ConfigurationBuilder()
+    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{env}.json", optional: true)
+    .AddEnvironmentVariables()
+    .Build();
 
 
 services.AddDbContext<MsSqlDbContext>(options => options.UseSqlServer(config.GetConnectionString("MsSQL")));
@@ -32,6 +34,8 @@ else
 }
 
 var app = builder.Build();
+
+app.UseHttpsRedirection();
 
 if (app.Environment.IsDevelopment())
 {
