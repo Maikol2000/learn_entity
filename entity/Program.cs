@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using entity.Db;
 
 
-string? env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", EnvironmentVariableTarget.Process);
+string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", EnvironmentVariableTarget.Process);
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -16,7 +16,7 @@ services.AddSwaggerGen();
 IConfiguration config = new ConfigurationBuilder()
     .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{env}.json", optional: true)
+    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", EnvironmentVariableTarget.Process)}.json", optional: true)
     .AddEnvironmentVariables()
     .Build();
 
@@ -37,11 +37,15 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-};
+//if (app.Environment.IsDevelopment())
+//{
+
+//};
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.MapGet("/env", () => env);
 
 app.MapGet("/articles", (IAppDbContext context) => context.Articles.ToListAsync<Article>());
 
