@@ -37,15 +37,8 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 
-//if (app.Environment.IsDevelopment())
-//{
-
-//};
-
 app.UseSwagger();
 app.UseSwaggerUI();
-
-app.MapGet("/env", () => env);
 
 app.MapGet("/articles", (IAppDbContext context) => context.Articles.ToListAsync<Article>());
 
